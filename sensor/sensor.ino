@@ -4,8 +4,15 @@
 
 const uint8_t RECV_PIN = 2;      // Pin para recibir IR
 const uint8_t SEND_PIN = 3;      // Pin para enviar IR de respuesta
-const uint16_t COMMAND_ADDRESS = 0x10;
-const uint16_t RESPONSE_ADDRESS = 0x02;
+const uint16_t CONTROLLER_ADDRESS = 0x10;
+const uint16_t SENSOR_ADDRESS = 0x40;
+
+/********************
+* COMMANDS REQUESTS
+********************/
+const uint16_t CMD_TEMPERATURE = 0x20;
+const uint16_t CMD_HUMIDITY    = 0x21;
+const uint16_t CMD_LUMINOSITY  = 0x22;
 
 #define DHTPIN 7
 #define DHTTYPE DHT11
@@ -30,11 +37,11 @@ void loop() {
       Serial.print("Command: 0x"); Serial.println(receivedCommand, HEX);
     }
 
-    if (rawData != 0 && IrReceiver.decodedIRData.address == COMMAND_ADDRESS) {
+    if (rawData != 0 && IrReceiver.decodedIRData.address == CONTROLLER_ADDRESS) {
       uint16_t responseCommand = 0;
 
       switch (receivedCommand) {
-        case 0x20: { // TEMPERATURA
+        case CMD_TEMPERATURE: { // TEMPERATURA
           float temp = dht.readTemperature(); // °C
           if (isnan(temp)) { Serial.println("Error leyendo temperatura"); break; }
           responseCommand = (uint8_t)((temp / 50.0) * 255.0); // mapear 0-50°C a 0-255
@@ -43,7 +50,7 @@ void loop() {
           break;
         }
 
-        case 0x21: { // HUMEDAD
+        case CMD_HUMIDITY: { // HUMEDAD
           float hum = dht.readHumidity(); // %
           if (isnan(hum)) { Serial.println("Error leyendo humedad"); break; }
           responseCommand = (uint8_t)((hum / 100.0) * 255.0); // mapear 0-100% a 0-255
@@ -52,7 +59,7 @@ void loop() {
           break;
         }
 
-        case 0x22: { // LUMINOSIDAD
+        case CMD_LUMINOSITY: { // LUMINOSIDAD
           int analogValue = analogRead(A0); // 0-1023
           responseCommand = map(analogValue, 0, 1023, 0, 255); // convertir a 8 bits
           Serial.print("Recibido LUMINOSIDAD. Analog A0: "); Serial.print(analogValue);
@@ -64,9 +71,9 @@ void loop() {
           Serial.println("Comando desconocido, ignorando"); 
           responseCommand = 0;
       }
-
+      delay(100);
       if (responseCommand != 0) {
-        IrSender.sendNEC(RESPONSE_ADDRESS, responseCommand, 0);
+        IrSender.sendNEC(SENSOR_ADDRESS, responseCommand, 0);
       }
     }
 
