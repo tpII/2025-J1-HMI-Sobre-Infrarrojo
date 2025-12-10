@@ -4,8 +4,8 @@
 #include <WebServer.h>
 
 // ==== CONFIGURACIÓN WiFi ====
-const char* ssid = "Fibertel WiFi773 2.4GHz";
-const char* password = "0042375774";
+const char* ssid = "Tdp2";
+const char* password = "12345678";
 
 WebServer server(80);
 

@@ -90,7 +90,7 @@ void loop() {
         case CMD_STATUS: { // STATUS REQ
           Serial.println("Recibido STATUS REQ - Enviando estado del relé");
           handleStatusRequest();
-          IrReceiver.resume();
+          // IrReceiver.resume();
           break;
         }
         default:
@@ -98,7 +98,6 @@ void loop() {
       }
 
       if (expectingData) {
-        delay(100);
         // Enviar ACK
         Serial.println("Enviando SEND_ACK RES (CMD_ACK)");
         IrSender.sendNEC(ACTUADOR_ADDRESS, CMD_ACK, 0);
@@ -107,7 +106,7 @@ void loop() {
         unsigned long startTime = millis();
         bool receivedData = false;
 
-        while (millis() - startTime < TIMEOUT || !receivedData) {
+        while (millis() - startTime < TIMEOUT ) {
           if (IrReceiver.decode()) {
             uint32_t dataRawData = IrReceiver.decodedIRData.decodedRawData;
             uint16_t dataAddress = IrReceiver.decodedIRData.address;
@@ -117,7 +116,7 @@ void loop() {
               Serial.print("Dato recibido: 0x"); Serial.println(dataValue, HEX);
               receivedData = true;
               controlRelay(dataType, dataValue);
-              IrReceiver.resume();
+              // IrReceiver.resume();
               break;
             }
             IrReceiver.resume();
@@ -182,7 +181,6 @@ void controlRelay(uint8_t dataType, uint8_t value) {
 }
 
 void handleStatusRequest() {
-  delay(100);
   // Enviar estado del relé (0x00 = apagado, 0xFF = encendido)
   uint8_t statusValue = relayState ? CMD_STATUS_ON : CMD_STATUS_OFF;
   Serial.print("Enviando estado del relé: ");
